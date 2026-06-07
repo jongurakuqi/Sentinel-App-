@@ -1,6 +1,6 @@
 # Sentinel
 
-Simple decentralized chat for people near you — over Bluetooth, no internet required.
+Simple decentralized chat for people near you — over Bluetooth, no internet required. Bluetooth Mesh Network - Tech.
 
 ## Run
 
