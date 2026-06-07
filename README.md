@@ -22,3 +22,9 @@ That's it. No accounts, no channels, no commands.
 ## Note
 
 This web demo uses a local relay to simulate Bluetooth proximity. A native app would use real BLE peer discovery.
+
+When Sentinel is better
+Protest / festival / disaster where cell towers are overloaded
+Camping, hiking, remote areas
+When you don’t want a company logging your chats
+When you only care about people right next to you
