@@ -2,6 +2,22 @@
 
 Simple decentralized chat for people near you — over Bluetooth, no internet required. Bluetooth Mesh Network - Tech.
 
+
+┌─────────────────────────────────────────────────────────┐
+│                    KEYSTONE (Pillar 3)                   │
+│         Identity · verification · recovery · trust       │
+└─────────────────────────┬───────────────────────────────┘
+                          │ shared keys & trust
+          ┌───────────────┴───────────────┐
+          ▼                               ▼
+   ┌──────────────┐                ┌──────────────┐
+   │   STELLAR    │                │   SENTINEL   │
+   │  See / Map   │                │  Talk / Mesh │
+   │  chokepoints │◄── alerts ────►│  messaging   │
+   └──────────────┘                └──────────────┘
+
+
+
 ## Run
 
 ```bash
