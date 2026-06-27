@@ -1,10 +1,32 @@
-# Launch Plan
+# Sentinel - Launch Plan
 
-You already have a working app, a live website, and docs. What's missing is **hosted infrastructure**, **installable builds**, and **store compliance**. Here's a step-by-step launch plan in order.
+> A step-by-step roadmap from "working app on my machine" to "installable on real phones and live on Google Play."
+
+You already have a working app, a live website, and docs. What's missing is **hosted infrastructure**, **installable builds**, and **store compliance**. This document walks through it phase by phase, in order.
 
 ---
 
-## Phase 0 - Decide what "v1 launch" means (30 minutes)
+## Table of Contents
+
+- [Phase 0 - Decide what "v1 launch" means](#phase-0---decide-what-v1-launch-means)
+- [Phase 1 - Put the project in one place](#phase-1---put-the-project-in-one-place)
+- [Phase 2 - Host the relay](#phase-2---host-the-relay)
+- [Phase 3 - First installable Android build](#phase-3---first-installable-android-build)
+- [Phase 4 - Soft launch to early users](#phase-4---soft-launch-to-early-users)
+- [Phase 5 - Web app (optional)](#phase-5---web-app-optional)
+- [Phase 6 - Google Play Store prep](#phase-6---google-play-store-prep)
+- [Phase 7 - App Store compliance gaps](#phase-7---app-store-compliance-gaps)
+- [Phase 8 - iPhone / App Store](#phase-8---iphone--app-store)
+- [Phase 9 - Grow after launch](#phase-9---grow-after-launch)
+- [14-Day Checklist](#14-day-checklist)
+- [Costs Summary](#costs-summary)
+- [The One Thing That Blocks Everything](#the-one-thing-that-blocks-everything)
+
+---
+
+## Phase 0 - Decide what "v1 launch" means
+
+*Time: 30 minutes*
 
 Pick one primary goal for the first release:
 
@@ -19,7 +41,9 @@ Pick one primary goal for the first release:
 
 ---
 
-## Phase 1 - Put the project in one place (Day 1)
+## Phase 1 - Put the project in one place
+
+*Day 1*
 
 **Why:** you need a single repo others (and you) can trust.
 
@@ -33,7 +57,7 @@ Pick one primary goal for the first release:
    cd /Users/jongurakuqi/Projects/bitchat-vibe
    gh repo create sentinel --public --source=. --remote=origin --push
 ```
-3. Update website GitHub links in `website/index.html` then redeploy:
+3. Update website GitHub links in `website/index.html`, then redeploy:
 ```bash
    cd website && vercel deploy --prod --yes
 ```
@@ -42,13 +66,15 @@ Pick one primary goal for the first release:
 
 ---
 
-## Phase 2 - Host the relay (Day 1-2) - **required for real users**
+## Phase 2 - Host the relay
+
+*Day 1-2 - required for real users*
 
 The app is useless on phones without a public relay. Right now it defaults to `localhost`.
 
 ### Option A - Easiest (Railway / Render / Fly.io)
 
-1. Create account on [Railway](https://railway.app), [Render](https://render.com), or [Fly.io](https://fly.io).
+1. Create an account on [Railway](https://railway.app), [Render](https://render.com), or [Fly.io](https://fly.io).
 2. Deploy `sentinel/server/` (Node app, port 8787, needs persistent disk for `data/`).
 3. Enable HTTPS so your URL becomes `wss://your-relay.up.railway.app` (or similar).
 4. Test:
@@ -70,11 +96,13 @@ Tor onion via `sentinel/server/onion/` - good for v2, not required for first lau
 
 ---
 
-## Phase 3 - First installable Android build (Day 2-3)
+## Phase 3 - First installable Android build
+
+*Day 2-3*
 
 **Tool:** Expo EAS (cloud build, no Android Studio needed on your Mac).
 
-1. Create free account: https://expo.dev then run `eas login`
+1. Create a free account at https://expo.dev, then run `eas login`
 2. From the app folder:
 ```bash
    cd sentinel
@@ -86,7 +114,7 @@ Tor onion via `sentinel/server/onion/` - good for v2, not required for first lau
    EXPO_PUBLIC_RELAY_URL="wss://YOUR-RELAY-URL" \
      eas build -p android --profile preview
 ```
-4. When build finishes (~15-25 min), Expo gives you:
+4. When the build finishes (~15-25 min), Expo gives you:
    - **Install URL**
    - **QR code**
 5. On your Android phone:
@@ -104,7 +132,9 @@ Tor onion via `sentinel/server/onion/` - good for v2, not required for first lau
 
 ---
 
-## Phase 4 - Soft launch to early users (Week 1)
+## Phase 4 - Soft launch to early users
+
+*Week 1*
 
 1. Share the **APK install link** privately (friends, Discord, email list).
 2. Put the link on your website under **Get started -> Android** (or a simple `/download` page).
@@ -115,7 +145,9 @@ Tor onion via `sentinel/server/onion/` - good for v2, not required for first lau
 
 ---
 
-## Phase 5 - Web app (optional, Week 1-2)
+## Phase 5 - Web app (optional)
+
+*Week 1-2*
 
 1. Build static web bundle:
 ```bash
@@ -123,13 +155,15 @@ Tor onion via `sentinel/server/onion/` - good for v2, not required for first lau
    EXPO_PUBLIC_RELAY_URL="wss://YOUR-RELAY-URL" npx expo export --platform web
 ```
 2. Deploy `dist/` to Vercel (new project, root = `sentinel/dist` or export output path).
-3. Add link on marketing site: "Try in browser".
+3. Add a link on the marketing site: "Try in browser".
 
 **Note:** web uses `localStorage` for keys - fine for a demo, say so in the disclaimer.
 
 ---
 
-## Phase 6 - Google Play Store prep (Week 2-3)
+## Phase 6 - Google Play Store prep
+
+*Week 2-3*
 
 ### 6.1 Accounts & money
 
@@ -162,7 +196,7 @@ EXPO_PUBLIC_RELAY_URL="wss://YOUR-RELAY-URL" \
   eas build -p android --profile production
 ```
 
-This produces an **`.aab`** (App Bundle), not APK - required for Play Store.
+This produces an **`.aab`** (App Bundle), not APK - required for the Play Store.
 
 ### 6.5 Upload
 
@@ -183,7 +217,9 @@ Or upload the `.aab` manually in Play Console.
 
 ---
 
-## Phase 7 - App Store compliance gaps (before public Production)
+## Phase 7 - App Store compliance gaps
+
+*Before public Production*
 
 These aren't blockers for a private APK, but Google **will** want them for a public listing:
 
@@ -196,7 +232,9 @@ These aren't blockers for a private APK, but Google **will** want them for a pub
 
 ---
 
-## Phase 8 - iPhone / App Store (later, +2-4 weeks)
+## Phase 8 - iPhone / App Store
+
+*Later, +2-4 weeks*
 
 1. Apple Developer Program - **$99/year**
 2. `eas build -p ios --profile production`
@@ -207,7 +245,9 @@ Do Android first; iOS can follow once Android is stable.
 
 ---
 
-## Phase 9 - Grow after launch (ongoing)
+## Phase 9 - Grow after launch
+
+*Ongoing*
 
 1. **Website** - already live; add download / Play Store badge when ready
 2. **GitHub** - public repo builds trust (Signal/Briar model)
@@ -217,7 +257,7 @@ Do Android first; iOS can follow once Android is stable.
 
 ---
 
-## 14-day checklist
+## 14-Day Checklist
 
 | Day | Task |
 |-----|------|
@@ -234,7 +274,7 @@ Do Android first; iOS can follow once Android is stable.
 
 ---
 
-## Costs summary
+## Costs Summary
 
 | Item | Cost |
 |------|------|
@@ -248,6 +288,6 @@ Do Android first; iOS can follow once Android is stable.
 
 ---
 
-## The one thing that blocks everything
+## The One Thing That Blocks Everything
 
 **Deploy the relay first.** Without `wss://your-relay...` baked into the build, installs will open but login/chat will fail.
