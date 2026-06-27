@@ -1,0 +1,253 @@
+# Launch Plan
+
+You already have a working app, a live website, and docs. What's missing is **hosted infrastructure**, **installable builds**, and **store compliance**. Here's a step-by-step launch plan in order.
+
+---
+
+## Phase 0 - Decide what "v1 launch" means (30 minutes)
+
+Pick one primary goal for the first release:
+
+| Goal | What you ship | Timeline |
+|------|---------------|----------|
+| **A. Friends & testers** | APK link + relay | 2-5 days |
+| **B. Public web demo** | Web app + relay | 1-3 days |
+| **C. Google Play (internal)** | `.aab` + Play Console internal track | 1-3 weeks |
+| **D. Google Play (public)** | Full store listing + review | 3-6 weeks |
+
+**Recommendation:** do **A first**, then **C**, then **D**. Web (B) can run in parallel.
+
+---
+
+## Phase 1 - Put the project in one place (Day 1)
+
+**Why:** you need a single repo others (and you) can trust.
+
+1. Install tools (one-time on your Mac):
+```bash
+   xcode-select --install
+   gh auth login
+```
+2. Push everything to GitHub:
+```bash
+   cd /Users/jongurakuqi/Projects/bitchat-vibe
+   gh repo create sentinel --public --source=. --remote=origin --push
+```
+3. Update website GitHub links in `website/index.html` then redeploy:
+```bash
+   cd website && vercel deploy --prod --yes
+```
+
+**Done when:** code is on GitHub, website points to the real repo.
+
+---
+
+## Phase 2 - Host the relay (Day 1-2) - **required for real users**
+
+The app is useless on phones without a public relay. Right now it defaults to `localhost`.
+
+### Option A - Easiest (Railway / Render / Fly.io)
+
+1. Create account on [Railway](https://railway.app), [Render](https://render.com), or [Fly.io](https://fly.io).
+2. Deploy `sentinel/server/` (Node app, port 8787, needs persistent disk for `data/`).
+3. Enable HTTPS so your URL becomes `wss://your-relay.up.railway.app` (or similar).
+4. Test:
+```bash
+   curl https://your-relay-url/   # should say: Sentinel relay up
+```
+
+### Option B - More control (VPS, ~$5/mo)
+
+Hetzner / DigitalOcean -> install Node -> run `node relay.js` -> put Caddy/nginx in front for TLS.
+
+### Option C - Max privacy story (later)
+
+Tor onion via `sentinel/server/onion/` - good for v2, not required for first launch.
+
+**Done when:** you have a working `wss://...` URL that stays up 24/7.
+
+**Cost:** ~$0-7/month.
+
+---
+
+## Phase 3 - First installable Android build (Day 2-3)
+
+**Tool:** Expo EAS (cloud build, no Android Studio needed on your Mac).
+
+1. Create free account: https://expo.dev then run `eas login`
+2. From the app folder:
+```bash
+   cd sentinel
+   npm install
+   eas build:configure    # one-time
+```
+3. Build a **test APK** pointed at your relay:
+```bash
+   EXPO_PUBLIC_RELAY_URL="wss://YOUR-RELAY-URL" \
+     eas build -p android --profile preview
+```
+4. When build finishes (~15-25 min), Expo gives you:
+   - **Install URL**
+   - **QR code**
+5. On your Android phone:
+   - Open the link
+   - Allow "install from unknown sources" if asked
+   - Install -> register -> start a chat
+6. Test with **two phones** (or one phone + web):
+```bash
+   EXPO_PUBLIC_RELAY_URL="wss://YOUR-RELAY-URL" npm run web
+```
+
+**Done when:** two real accounts can register, chat, send a message, and see it on the other device.
+
+**Cost:** Expo free tier is enough to start.
+
+---
+
+## Phase 4 - Soft launch to early users (Week 1)
+
+1. Share the **APK install link** privately (friends, Discord, email list).
+2. Put the link on your website under **Get started -> Android** (or a simple `/download` page).
+3. Collect feedback: crashes, relay disconnects, confusing UX.
+4. Fix bugs -> rebuild APK with the same command (bump version in `app.json` when you want).
+
+**Do not** announce widely until relay uptime and basic chat flow are solid for a week.
+
+---
+
+## Phase 5 - Web app (optional, Week 1-2)
+
+1. Build static web bundle:
+```bash
+   cd sentinel
+   EXPO_PUBLIC_RELAY_URL="wss://YOUR-RELAY-URL" npx expo export --platform web
+```
+2. Deploy `dist/` to Vercel (new project, root = `sentinel/dist` or export output path).
+3. Add link on marketing site: "Try in browser".
+
+**Note:** web uses `localStorage` for keys - fine for a demo, say so in the disclaimer.
+
+---
+
+## Phase 6 - Google Play Store prep (Week 2-3)
+
+### 6.1 Accounts & money
+
+| Item | Cost |
+|------|------|
+| Google Play Developer | **$25 one-time** -> [play.google.com/console](https://play.google.com/console) |
+| Expo (builds) | Free tier -> paid if you scale |
+
+### 6.2 Store assets (prepare before upload)
+
+- **App icon** - you have `sentinel/assets/icon.png` (1024x1024)
+- **Screenshots** - 2-8 phone screenshots (chat list, chat, profile, channels)
+- **Short description** (~80 chars)
+- **Full description** - privacy, E2EE, no phone number
+- **Privacy policy URL** - required (add a page on your Vercel site)
+- **Support email** - required
+
+### 6.3 Play Console forms
+
+1. **Data safety** - declare: username, password (hashed on server), messages (E2EE ciphertext), optional avatar.
+2. **Content rating** - questionnaire (likely low maturity for a chat app).
+3. **Encryption export** - `ITSAppUsesNonExemptEncryption: false` is already in `app.json` for iOS; Android has similar declarations in Play Console.
+4. **Target audience** - age group, etc.
+
+### 6.4 Production Android build
+
+```bash
+cd sentinel
+EXPO_PUBLIC_RELAY_URL="wss://YOUR-RELAY-URL" \
+  eas build -p android --profile production
+```
+
+This produces an **`.aab`** (App Bundle), not APK - required for Play Store.
+
+### 6.5 Upload
+
+```bash
+eas submit -p android
+```
+
+Or upload the `.aab` manually in Play Console.
+
+### 6.6 Release track (recommended order)
+
+1. **Internal testing** - up to 100 testers, fastest, minimal review
+2. **Closed testing** - larger group, still not public
+3. **Open testing** - optional public beta
+4. **Production** - full public listing (Google review, often 3-7 days first time)
+
+**Done when:** app is installable from Play Store (at least internal track).
+
+---
+
+## Phase 7 - App Store compliance gaps (before public Production)
+
+These aren't blockers for a private APK, but Google **will** want them for a public listing:
+
+| Requirement | Status today | Action |
+|-------------|--------------|--------|
+| Privacy policy | Missing | Add `/privacy` on website |
+| Account deletion | Missing | Add "Delete account" in Profile or document process |
+| Push notifications | Missing | OK for v1; users must open app to see messages |
+| Block / report | Missing | Needed for public social apps; plan for v1.1 |
+
+---
+
+## Phase 8 - iPhone / App Store (later, +2-4 weeks)
+
+1. Apple Developer Program - **$99/year**
+2. `eas build -p ios --profile production`
+3. App Store Connect listing + review (often stricter than Google)
+4. Same relay URL, privacy policy, account deletion
+
+Do Android first; iOS can follow once Android is stable.
+
+---
+
+## Phase 9 - Grow after launch (ongoing)
+
+1. **Website** - already live; add download / Play Store badge when ready
+2. **GitHub** - public repo builds trust (Signal/Briar model)
+3. **Relay** - monitor uptime; back up `server/data/` nightly
+4. **Community** - Nostr channels (`#sentinel`) for support, not for private support of sensitive users
+5. **Roadmap** - push notifications, key verification, Play Store polish
+
+---
+
+## 14-day checklist
+
+| Day | Task |
+|-----|------|
+| 1 | GitHub repo live + website links updated |
+| 1-2 | Relay deployed -> `wss://` URL working |
+| 2 | `eas login` + first **preview APK** build |
+| 3 | Test on 2 Android phones end-to-end |
+| 4-7 | Share APK with 5-10 testers; fix bugs |
+| 7 | Privacy policy page on website |
+| 8 | Google Play Developer account ($25) |
+| 9-10 | Store listing + screenshots + data safety form |
+| 11 | **Production `.aab`** build + upload to **Internal testing** |
+| 12-14 | Invite testers via Play Console; fix review feedback |
+
+---
+
+## Costs summary
+
+| Item | Cost |
+|------|------|
+| Relay hosting | $0-7/mo |
+| Expo EAS | $0 to start |
+| Google Play | $25 one-time |
+| Apple (later) | $99/year |
+| Website (Vercel) | $0 |
+| **Minimum to launch APK to friends** | **~$0-7/mo** |
+| **Minimum for Play Store** | **~$25 + hosting** |
+
+---
+
+## The one thing that blocks everything
+
+**Deploy the relay first.** Without `wss://your-relay...` baked into the build, installs will open but login/chat will fail.
