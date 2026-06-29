@@ -8,6 +8,22 @@ decentralized backend, and a radically honest threat model.
 - **Website:** https://website-three-wheat-36.vercel.app
 - **Principles:** no invented cryptography · no blockchain · messaging only · honest about limits
 
+What Hercules Encryption means (the novel angle)
+Instead of another generic “end-to-end encrypted” line, the messaging is positioned as:
+
+Bitcoin-curve identity — secp256k1, same math as Bitcoin wallets (npub / nsec), not a phone number
+NIP-44 sealing — ChaCha20-Poly1305 on every DM before it hits a relay
+Decentralized transport — public Nostr relays, no central inbox
+Portable keys — your identity works across the Nostr ecosystem
+Pitch line: “Not phone-number encryption. The same secp256k1 curve that secures Bitcoin — applied to 1:1 messaging.”
+
+
+
+
+
+
+
+
 > **Sentinel is an early prototype and has not been independently security-audited.**
 > For high-risk use prefer [Briar](https://briarproject.org) or [Signal](https://signal.org).
 
